@@ -1,0 +1,562 @@
+<!-- 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RAG AI Assistant: Upload documents, chat with AI, and book interviews seamlessly.">
+    <title>RAG AI Assistant</title>
+
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ====== CSS Reset ====== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f9f9fb;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            transition: all 0.3s ease-in-out;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+
+        h2 {
+            font-weight: 500;
+            font-size: 1.25rem;
+            margin-bottom: 15px;
+            color: #4b5563;
+        }
+
+        h5 {
+            font-weight: 200;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #4b5563;
+        }
+
+        section {
+            margin-bottom: 35px;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+        }
+
+        button {
+            background: #2563eb;
+            color: #fff;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+
+        #chatBox {
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 180px;
+            background: #f3f4f6;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+
+        .user {
+            background: #e0f2fe;
+            color: #0c4a6e;
+            align-self: flex-end;
+            font-weight: 500;
+        }
+
+        .ai {
+            background: #d1fae5;
+            color: #065f46;
+            align-self: flex-start;
+            font-weight: 500;
+        }
+
+        #chatBox {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            h2 {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Accessibility */
+        input[aria-invalid="true"], textarea[aria-invalid="true"] {
+            border-color: #dc2626;
+        }
+
+        .status {
+            font-size: 0.95rem;
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <main class="container" role="main">
+        <h1>AI Assistant</h1>
+
+        
+        <section aria-labelledby="upload-title">
+            <h2 id="upload-title">Upload Document</h2>
+            <input type="file" id="fileInput" aria-label="Select a PDF or text file" />
+            <select id="chunkStrategy" aria-label="Select chunking strategy">
+                <option value="fixed">Fixed Chunk</option>
+                <option value="semantic">Semantic Chunk</option>
+            </select>
+            <button type="button" onclick="uploadDocument()">Upload Document</button>
+            <p id="uploadStatus" class="status"></p>
+        </section>
+
+        <hr />
+
+        
+        <section aria-labelledby="chat-title">
+            <h2 id="chat-title">Chat / Book Interview</h2>
+            <input type="text" id="sessionId" placeholder="Enter session id (optional)" aria-label="Session ID" />
+            <h5 id="chat-title">For booking please mention name, email, date in format  2026-04-05 and time in this format 14:00:00</h5>
+            <textarea id="userQuery" placeholder="Type your message here..." aria-label="Your query"></textarea>
+            <button type="button" onclick="sendChat()">Send</button>
+            <div id="chatBox" aria-live="polite" aria-label="Chat conversation"></div>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:8000"; // Change for deployed backend
+
+        async function uploadDocument() {
+            const fileInput = document.getElementById("fileInput");
+            const chunkStrategy = document.getElementById("chunkStrategy").value;
+            const uploadStatus = document.getElementById("uploadStatus");
+
+            if (!fileInput.files.length) {
+                alert("Please select a file to upload.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("strategy", chunkStrategy);
+
+            try {
+                const response = await fetch(`${API_BASE}/ingest`, { method: "POST", body: formData });
+                const result = await response.json();
+                uploadStatus.textContent = `Uploaded "${result.filename}" with ${result.chunks_ingested} chunks successfully.`;
+            } catch (err) {
+                console.error(err);
+                uploadStatus.textContent = "Upload failed. Please try again.";
+            }
+        }
+
+        async function sendChat() {
+            const query = document.getElementById("userQuery").value.trim();
+            let sessionId = document.getElementById("sessionId").value.trim();
+            const chatBox = document.getElementById("chatBox");
+
+            if (!query) {
+                alert("Please enter your message.");
+                return;
+            }
+
+            // Auto-generate session ID if empty
+            if (!sessionId) {
+                sessionId = "session_" + Math.random().toString(36).substring(2, 10);
+                document.getElementById("sessionId").value = sessionId;
+            }
+
+            // Display user message
+            const userMsg = document.createElement("div");
+            userMsg.classList.add("message", "user");
+            userMsg.textContent = `You: ${query}`;
+            chatBox.appendChild(userMsg);
+
+            try {
+                const params = new URLSearchParams({ query, session_id: sessionId });
+                const response = await fetch(`${API_BASE}/chat?${params.toString()}`, { method: "POST" });
+                const result = await response.json();
+
+                const aiMsg = document.createElement("div");
+                aiMsg.classList.add("message", "ai");
+                aiMsg.textContent = `AI: ${result.response}`;
+                chatBox.appendChild(aiMsg);
+
+                chatBox.scrollTop = chatBox.scrollHeight;
+            } catch (err) {
+                console.error(err);
+                const errorMsg = document.createElement("div");
+                errorMsg.classList.add("message", "ai");
+                errorMsg.textContent = "AI: Error contacting server.";
+                chatBox.appendChild(errorMsg);
+            }
+
+            document.getElementById("userQuery").value = "";
+        }
+    </script>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="RAG AI Assistant: Upload documents, chat with AI, and book interviews seamlessly.">
+    <title>RAG AI Assistant</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* ====== CSS Reset ====== */
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f9f9fb;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            transition: all 0.3s ease-in-out;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #1f2937;
+        }
+
+        h2 {
+            font-weight: 500;
+            font-size: 1.25rem;
+            margin-bottom: 15px;
+            color: #4b5563;
+        }
+
+        h5 {
+            font-weight: 200;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #4b5563;
+        }
+
+        section {
+            margin-bottom: 35px;
+        }
+
+        input, textarea, select, button {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.2);
+        }
+
+        button {
+            background: #2563eb;
+            color: #fff;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+
+        #chatBox {
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 180px;
+            background: #f3f4f6;
+            overflow-y: auto;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 85%;
+            word-wrap: break-word;
+        }
+
+        .user {
+            background: #e0f2fe;
+            color: #0c4a6e;
+            align-self: flex-end;
+            font-weight: 500;
+        }
+
+        .ai {
+            background: #d1fae5;
+            color: #065f46;
+            align-self: flex-start;
+            font-weight: 500;
+        }
+
+        #chatBox {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            h2 {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Accessibility */
+        input[aria-invalid="true"], textarea[aria-invalid="true"] {
+            border-color: #dc2626;
+        }
+
+        .status {
+            font-size: 0.95rem;
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <main class="container" role="main">
+        <h1>AI Assistant</h1>
+
+        <!-- Session ID -->
+        <section aria-labelledby="session-title">
+            <h2 id="session-title">Session</h2>
+            <input type="text" id="sessionId" placeholder="Enter session id (optional)" aria-label="Session ID" />
+            <p class="status">
+                Session ID is used to maintain context across interactions. If left empty, a random session ID will be generated for you. You can reuse the same session ID for multiple interactions to keep the conversation context intact.
+            </p>
+        </section>
+
+        <hr />
+
+        <!-- Document Upload -->
+        <section aria-labelledby="upload-title">
+            <h2 id="upload-title">Upload Document</h2>
+            <input type="file" id="fileInput" aria-label="Select a PDF or text file" />
+            <select id="chunkStrategy" aria-label="Select chunking strategy">
+                <option value="fixed">Fixed Chunk</option>
+                <option value="semantic">Semantic Chunk</option>
+            </select>
+            <button type="button" onclick="uploadDocument()">Upload Document</button>
+            <p id="uploadStatus" class="status"></p>
+        </section>
+
+        <hr />
+
+        <!-- Chat / Booking -->
+        <section aria-labelledby="chat-title">
+            <h2 id="chat-title">Chat / Book Interview</h2>
+            <h5>
+                For booking please mention name, email, date in format 2026-04-05 and time in format 14:00
+            </h5>
+            <textarea id="userQuery" placeholder="Type your message here..." aria-label="Your query"></textarea>
+            <button type="button" onclick="sendChat()">Send</button>
+            <div id="chatBox" aria-live="polite" aria-label="Chat conversation"></div>
+        </section>
+    </main>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:8000"; // Change for deployed backend
+
+        function generateSessionId() {
+            return "session_" + Math.random().toString(36).substring(2, 10);
+        }
+
+        async function uploadDocument() {
+            const fileInput = document.getElementById("fileInput");
+            const chunkStrategy = document.getElementById("chunkStrategy").value;
+            const uploadStatus = document.getElementById("uploadStatus");
+            let sessionId = document.getElementById("sessionId").value.trim();
+
+            if (!fileInput.files.length) {
+                alert("Please select a file to upload.");
+                return;
+            }
+
+            // Auto-generate session ID if empty
+            if (!sessionId) {
+                sessionId = generateSessionId();
+                document.getElementById("sessionId").value = sessionId;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            try {
+                const response = await fetch(
+                    `${API_BASE}/ingest?session_id=${encodeURIComponent(sessionId)}&strategy=${encodeURIComponent(chunkStrategy)}`,
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    uploadStatus.textContent = "Upload failed: " + JSON.stringify(result);
+                    return;
+                }
+
+                uploadStatus.textContent =
+                    `Uploaded "${result.filename}" with ${result.chunks_ingested} chunks successfully (Session: ${sessionId}).`;
+
+            } catch (err) {
+                console.error(err);
+                uploadStatus.textContent = "Upload failed. Please try again.";
+            }
+        }
+
+        async function sendChat() {
+            const query = document.getElementById("userQuery").value.trim();
+            let sessionId = document.getElementById("sessionId").value.trim();
+            const chatBox = document.getElementById("chatBox");
+
+            if (!query) {
+                alert("Please enter your message.");
+                return;
+            }
+
+            // Auto-generate session ID if empty
+            if (!sessionId) {
+                sessionId = generateSessionId();
+                document.getElementById("sessionId").value = sessionId;
+            }
+
+            // Display user message
+            const userMsg = document.createElement("div");
+            userMsg.classList.add("message", "user");
+            userMsg.textContent = `You: ${query}`;
+            chatBox.appendChild(userMsg);
+
+            try {
+                const params = new URLSearchParams({
+                    query: query,
+                    session_id: sessionId
+                });
+
+                const response = await fetch(`${API_BASE}/chat?${params.toString()}`, {
+                    method: "POST"
+                });
+
+                const result = await response.json();
+
+                const aiMsg = document.createElement("div");
+                aiMsg.classList.add("message", "ai");
+                aiMsg.textContent = `AI: ${result.response}`;
+                chatBox.appendChild(aiMsg);
+
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+            } catch (err) {
+                console.error(err);
+                const errorMsg = document.createElement("div");
+                errorMsg.classList.add("message", "ai");
+                errorMsg.textContent = "AI: Error contacting server.";
+                chatBox.appendChild(errorMsg);
+            }
+
+            document.getElementById("userQuery").value = "";
+        }
+    </script>
+</body>
+</html>

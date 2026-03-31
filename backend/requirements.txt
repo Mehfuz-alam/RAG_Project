@@ -1,0 +1,15 @@
+fastapi 
+uvicorn 
+pydantic 
+python-dotenv
+pinecone
+google-generativeai
+redis 
+sqlalchemy 
+psycopg2-binary
+sentence-transformers 
+pypdf
+pydantic-settings
+python-multipart
+huggingface_hub  
+transformers
