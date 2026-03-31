@@ -127,7 +127,12 @@ http://127.0.0.1:8000/docs
 
 | PostgreSQL Database | Docker / Redis Setup |
 |---|---|
-| ![PostgreSQL Database](./assets/postgres.png) | ![Docker / Redis Setup](./assets/docker.png) |
+| <img width="857" height="453" alt="image" src="https://github.com/user-attachments/assets/7974fda7-b2a4-4e64-8264-9718b00ba72e" />
+| <img width="959" height="406" alt="image" src="https://github.com/user-attachments/assets/4bdb1534-ea60-4f35-b09a-9cea6d8b13d2" /> |
+ | <img width="857" height="458" alt="image" src="https://github.com/user-attachments/assets/010d1df3-415b-4cda-a824-23098f59c607" />|
+ | <img width="860" height="449" alt="image" src="https://github.com/user-attachments/assets/75d92260-d378-48f0-856b-71aee7a806c1" /> |
+
+
 
 ---
 
