@@ -1,6 +1,5 @@
 # RAG AI Assistant – Intelligent Document-Based Chat & Booking
 
-![Project Logo](./assets/logo.png)
 
 **RAG AI Assistant** is a full-featured backend system built for multi-turn conversational AI over uploaded documents, with integrated interview booking. The project demonstrates proficiency in **FastAPI, NLP, Vector Databases, Redis, and LLM integration**, packaged with a modular, scalable, and production-ready architecture.
 
@@ -83,8 +82,9 @@
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/yourusername/rag-ai-assistant.git
-cd rag-ai-assistant
+git clone https://github.com/Mehfuz-alam/RAG_Project.git
+cd RAG_Project
+cd backend
 ```
 
 **2. Create `.env` file with:**
@@ -153,7 +153,6 @@ http://127.0.0.1:8000/docs
 - **Modular Services:** `BookingService`, `IngestService`, `RAGService`.
 - **Custom RAG:** fetch embeddings → construct prompt → generate response.
 - **Redis memory:** session-based multi-turn chat stored as JSON.
-- **Pydantic & Typing:** clean request/response handling.
 - **Database models:** SQLAlchemy `Booking` and `Document` tables.
 
 ---
@@ -219,5 +218,5 @@ backend/
 
 ---
 
-> **Author:** Your Name – AI/ML Intern  
+> **Author:** Mehfuz Alam 
 > **Date:** 2026
