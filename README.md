@@ -122,7 +122,8 @@ http://127.0.0.1:8000/docs
 
 | Frontend UI | Postman Testing |
 |---|---|
-| ![Frontend UI](./assets/frontend.png) | <img width="959" height="503" alt="image" src="https://github.com/user-attachments/assets/6da8ac1e-52a1-409d-a563-6bb7d0abbb35" />
+| <img width="1920" height="2666" alt="image" src="https://github.com/user-attachments/assets/9cdfaaa9-27f3-480b-8edb-3447909bae24" />
+ | <img width="959" height="503" alt="image" src="https://github.com/user-attachments/assets/6da8ac1e-52a1-409d-a563-6bb7d0abbb35" />
  |
 
 | PostgreSQL Database | Docker / Redis Setup |
